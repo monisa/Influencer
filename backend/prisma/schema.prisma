@@ -1,0 +1,200 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CREATOR
+  BRAND
+  ADMIN
+}
+
+enum OtpPurpose {
+  REGISTER
+  LOGIN
+  RESET
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  IN_REVIEW
+  VERIFIED
+  REJECTED
+}
+
+// Campaign state machine per PRD Section 18:
+// draft -> posted -> applied -> approved -> posted-content -> completed -> paid
+enum CampaignStatus {
+  DRAFT
+  POSTED
+  APPLIED
+  APPROVED
+  POSTED_CONTENT
+  COMPLETED
+  PAID
+}
+
+enum ApplicationStatus {
+  APPLIED
+  APPROVED
+  REJECTED
+  CONTENT_SUBMITTED
+  CONTENT_APPROVED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String?
+  role          Role
+  googleId      String?   @unique
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  creatorProfile CreatorProfile?
+  brandProfile   BrandProfile?
+  otpCodes       OtpCode[]
+
+  @@index([role])
+}
+
+model OtpCode {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String
+  purpose   OtpPurpose
+  expiresAt DateTime
+  consumedAt DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([userId, purpose])
+}
+
+model CreatorProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName     String
+  city         String?
+  instagram    String?
+  youtube      String?
+  tiktok       String?
+  primaryPlatform String?
+
+  followerRange          String?
+  primaryAudienceAge     String?
+  primaryAudienceGender  String?
+  audienceLocation       String?
+
+  pricingModel String?
+  ratePerPost  Int?
+
+  portfolioLink String?
+  pastBrands    String?
+
+  availability     String?
+  weeklyCapacity   String?
+
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  verifiedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications Application[]
+
+  @@index([verificationStatus])
+}
+
+model BrandProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  companyName String
+  contactName String?
+  website     String?
+  industry    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  campaigns Campaign[]
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  brandId     String
+  brand       BrandProfile   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  name        String
+  goal        String?
+  description String?
+
+  budgetModel String?
+  budgetRange String?
+
+  targetAgeGroup  String?
+  targetLocation  String?
+  targetInterests String?
+
+  preferredPlatform String?
+  preferredTier     String?
+
+  status CampaignStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications Application[]
+
+  @@index([status])
+}
+
+model Application {
+  id         String            @id @default(cuid())
+  campaignId String
+  campaign   Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  creatorId  String
+  creator    CreatorProfile    @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  status ApplicationStatus @default(APPLIED)
+
+  contentUrl           String?
+  performanceReportUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment Payment?
+
+  @@unique([campaignId, creatorId])
+  @@index([status])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  applicationId String        @unique
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  amount Int
+  status PaymentStatus @default(PENDING)
+  paidAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
