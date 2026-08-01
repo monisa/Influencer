@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BrandRegistrationWizard } from "@/components/BrandRegistrationWizard";
+import { RequireRole } from "@/components/RequireRole";
 import { SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export default function BrandRegisterPage() {
       </div>
 
       <div className="mt-12">
-        <BrandRegistrationWizard />
+        <RequireRole role="BRAND">
+          <BrandRegistrationWizard />
+        </RequireRole>
       </div>
     </div>
   );

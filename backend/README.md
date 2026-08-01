@@ -4,6 +4,9 @@ Node.js/Express backend for the Digifox Influencer Network marketplace, implemen
 Section 18 (Technical Requirements): auth, role-based access, profiles, campaigns, applications,
 and payment tracking on top of PostgreSQL.
 
+The root [`README.md`](../README.md) documents running this alongside the Next.js frontend,
+which calls the auth and registration endpoints below directly.
+
 ## Tech stack
 
 - Express + TypeScript (ESM)

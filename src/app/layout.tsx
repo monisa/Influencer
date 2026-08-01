@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthModalProvider } from "@/context/AuthModalContext";
+import { SessionProvider } from "@/context/SessionContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AuthModal } from "@/components/AuthModal";
@@ -38,14 +39,16 @@ export default function RootLayout({
       className={`${inter.variable} ${poppins.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col pb-16 sm:pb-0">
-        <AuthModalProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <WhatsAppButton />
-          <StickyMobileCta />
-          <AuthModal />
-        </AuthModalProvider>
+        <SessionProvider>
+          <AuthModalProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <WhatsAppButton />
+            <StickyMobileCta />
+            <AuthModal />
+          </AuthModalProvider>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { WizardShell, Field, inputClass } from "./WizardShell";
 import { Icon } from "./icons";
+import { useSession } from "@/context/SessionContext";
+import { brandApi, campaignApi, ApiError } from "@/lib/api";
 
 const STEPS = ["Company Details", "Campaign Brief", "Budget", "Target Audience", "Creator Type"];
 
@@ -45,10 +47,13 @@ const EMPTY: FormState = {
 };
 
 export function BrandRegistrationWizard() {
+  const { session } = useSession();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormState>(EMPTY);
   const [saved, setSaved] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -75,14 +80,44 @@ export function BrandRegistrationWizard() {
 
   const isLastStep = step === STEPS.length - 1;
 
-  const handleNext = (e: React.FormEvent) => {
+  const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLastStep) {
-      window.localStorage.removeItem(STORAGE_KEY);
-      setSubmitted(true);
+    if (!isLastStep) {
+      setStep((s) => Math.min(s + 1, STEPS.length - 1));
       return;
     }
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+
+    if (!session) return;
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      await brandApi.upsertMe(session.token, {
+        companyName: data.companyName,
+        contactName: data.contactName || undefined,
+        website: data.website,
+      });
+
+      const { campaign } = await campaignApi.create(session.token, {
+        name: data.campaignName,
+        goal: data.campaignGoal || undefined,
+        description: data.campaignDescription || undefined,
+        budgetModel: data.budgetModel || undefined,
+        budgetRange: data.budgetRange || undefined,
+        targetAgeGroup: data.targetAgeGroup || undefined,
+        targetLocation: data.targetLocation || undefined,
+        targetInterests: data.targetInterests || undefined,
+        preferredPlatform: data.creatorPlatform || undefined,
+        preferredTier: data.creatorTier || undefined,
+      });
+      await campaignApi.post(session.token, campaign.id);
+
+      window.localStorage.removeItem(STORAGE_KEY);
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -93,8 +128,10 @@ export function BrandRegistrationWizard() {
         </div>
         <h2 className="mt-5 font-display text-2xl font-bold text-brand-ink">Campaign brief submitted</h2>
         <p className="mt-2 text-sm text-brand-ink-soft">
-          Thanks, {data.companyName || "team"} — we&apos;ll start matching creators and reach out at{" "}
-          {data.email || "your inbox"} shortly.
+          Thanks, {data.companyName || "team"}
+          {" "}— your campaign is live and we&apos;ll start matching creators. We&apos;ll reach out
+          at {session?.user.email ?? "your inbox"}
+          {" "}shortly.
         </p>
       </div>
     );
@@ -107,9 +144,14 @@ export function BrandRegistrationWizard() {
       onBack={() => setStep((s) => Math.max(s - 1, 0))}
       onNext={handleNext}
       isLastStep={isLastStep}
-      submitLabel="Submit Campaign"
+      submitLabel={submitting ? "Submitting…" : "Submit Campaign"}
+      submitDisabled={submitting}
       showAutosave={saved}
     >
+      {submitError && (
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">{submitError}</p>
+      )}
+
       {step === 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Company / Brand name">
@@ -130,14 +172,11 @@ export function BrandRegistrationWizard() {
               className={inputClass}
             />
           </Field>
-          <Field label="Work email">
+          <Field label="Work email" hint="Signed in with this account email">
             <input
-              required
-              type="email"
-              autoComplete="email"
-              value={data.email}
-              onChange={update("email")}
-              className={inputClass}
+              disabled
+              value={session?.user.email ?? data.email}
+              className={`${inputClass} cursor-not-allowed bg-black/[0.03] text-brand-ink-soft`}
             />
           </Field>
           <Field label="Phone number">

@@ -9,6 +9,7 @@ export function WizardShell({
   onNext,
   isLastStep,
   submitLabel = "Submit",
+  submitDisabled = false,
   showAutosave,
   children,
 }: {
@@ -18,6 +19,7 @@ export function WizardShell({
   onNext: (e: React.FormEvent) => void;
   isLastStep: boolean;
   submitLabel?: string;
+  submitDisabled?: boolean;
   showAutosave: boolean;
   children: React.ReactNode;
 }) {
@@ -74,7 +76,8 @@ export function WizardShell({
           </button>
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-full bg-brand-orange-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-orange-600 cursor-pointer"
+            disabled={isLastStep && submitDisabled}
+            className="inline-flex items-center gap-2 rounded-full bg-brand-orange-500 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-orange-600 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
             {isLastStep ? submitLabel : "Continue"}
             {!isLastStep && <Icon name="arrow-right" className="h-4 w-4" />}

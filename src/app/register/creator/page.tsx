@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CreatorRegistrationWizard } from "@/components/CreatorRegistrationWizard";
+import { RequireRole } from "@/components/RequireRole";
 import { SITE } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -23,7 +24,9 @@ export default function CreatorRegisterPage() {
       </div>
 
       <div className="mt-12">
-        <CreatorRegistrationWizard />
+        <RequireRole role="CREATOR">
+          <CreatorRegistrationWizard />
+        </RequireRole>
       </div>
     </div>
   );
