@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #16151a;
+
+  --color-brand-orange-50: #fff4ec;
+  --color-brand-orange-100: #ffe4cc;
+  --color-brand-orange-400: #f68a3d;
+  --color-brand-orange-500: #ee7a20;
+  --color-brand-orange-600: #d5650f;
+  --color-brand-orange-700: #b0500c;
+
+  --color-brand-purple-50: #f3f1ff;
+  --color-brand-purple-100: #e6e0ff;
+  --color-brand-purple-400: #8a72f4;
+  --color-brand-purple-500: #6f4de8;
+  --color-brand-purple-600: #5936c9;
+  --color-brand-purple-700: #452a9e;
+
+  --color-brand-ink: #16151a;
+  --color-brand-ink-soft: #4a4852;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-poppins);
+
+  --color-brand-orange-50: var(--color-brand-orange-50);
+  --color-brand-orange-100: var(--color-brand-orange-100);
+  --color-brand-orange-400: var(--color-brand-orange-400);
+  --color-brand-orange-500: var(--color-brand-orange-500);
+  --color-brand-orange-600: var(--color-brand-orange-600);
+  --color-brand-orange-700: var(--color-brand-orange-700);
+
+  --color-brand-purple-50: var(--color-brand-purple-50);
+  --color-brand-purple-100: var(--color-brand-purple-100);
+  --color-brand-purple-400: var(--color-brand-purple-400);
+  --color-brand-purple-500: var(--color-brand-purple-500);
+  --color-brand-purple-600: var(--color-brand-purple-600);
+  --color-brand-purple-700: var(--color-brand-purple-700);
+
+  --color-brand-ink: var(--color-brand-ink);
+  --color-brand-ink-soft: var(--color-brand-ink-soft);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+@keyframes float-slower {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-slower {
+  animation: float-slower 8s ease-in-out infinite;
+}
+
+.text-gradient-brand {
+  background-image: linear-gradient(90deg, var(--color-brand-orange-500), var(--color-brand-purple-500));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.section-px {
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+}
+@media (min-width: 640px) {
+  .section-px {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+::selection {
+  background: var(--color-brand-orange-100);
+  color: var(--color-brand-ink);
+}
